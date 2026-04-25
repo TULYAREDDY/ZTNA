@@ -97,19 +97,7 @@ For every request:
 
 ---
 
-## 7. How the System Works
-
-Step 1: User creates session
-Step 2: Proxy intercepts request
-Step 3: Backend validates session
-Step 4: Features are generated
-Step 5: ML model predicts
-Step 6: Decision returned
-Step 7: Proxy allows or blocks request
-
----
-
-## 8. Setup Instructions
+## 7. Setup Instructions
 
 ### Backend
 
@@ -148,7 +136,7 @@ curl -x http://localhost:9090 http://httpbin.org/get \
 
 ---
 
-## 9. Expected Results
+## 8. Expected Results
 
 * Normal request → 200 OK
 * Suspicious behavior → sometimes ALLOW
@@ -156,7 +144,7 @@ curl -x http://localhost:9090 http://httpbin.org/get \
 
 ---
 
-## 10. Demo Flow
+## 9. Demo Flow
 
 1. Run backend and proxy
 2. Generate session
