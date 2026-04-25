@@ -109,22 +109,7 @@ Step 7: Proxy allows or blocks request
 
 ---
 
-## 8. Project Structure
-
-ztna_project/
-├── ztna_backend/
-│   ├── app.py
-│   ├── client.py
-│   └── ml/
-│       ├── ztna_dataset.csv
-│       └── ztna_model.pkl
-├── ztna_proxy/
-│   └── proxy.py
-└── README.md
-
----
-
-## 9. Setup Instructions
+## 8. Setup Instructions
 
 ### Backend
 
@@ -163,7 +148,7 @@ curl -x http://localhost:9090 http://httpbin.org/get \
 
 ---
 
-## 10. Expected Results
+## 9. Expected Results
 
 * Normal request → 200 OK
 * Suspicious behavior → sometimes ALLOW
@@ -171,7 +156,7 @@ curl -x http://localhost:9090 http://httpbin.org/get \
 
 ---
 
-## 11. Demo Flow
+## 10. Demo Flow
 
 1. Run backend and proxy
 2. Generate session
