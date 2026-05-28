@@ -1,5 +1,151 @@
-venv/
-__pycache__/
-*.pyc
+# =============================================================================
+# Operating system
+# =============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# =============================================================================
+# Editors / IDEs
+# =============================================================================
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# VS Code: keep workspace settings, ignore everything else
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.code-workspace
+.history/
+
+# JetBrains
+*.iml
+.idea_modules/
+
+# =============================================================================
+# Environment / secrets
+# =============================================================================
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+secrets/
+.secrets/
+
+# =============================================================================
+# Python
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtualenvs
+.venv/
+venv/
+env/
+ENV/
+
+# Packaging / build
+build/
+dist/
+*.egg
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+wheels/
+sdist/
+
+# Tooling caches
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.dmypy.json
+dmypy.json
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.hypothesis/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# =============================================================================
+# Node / JavaScript / TypeScript
+# =============================================================================
+node_modules/
+jspm_packages/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/.tsbuild-node/
+*.tsbuildinfo
+
+# Caches
+.eslintcache
+.stylelintcache
+.parcel-cache/
+.cache/
+.turbo/
+.next/
+.nuxt/
+.svelte-kit/
+
+# =============================================================================
+# Sentinel ZTNA — application artifacts
+# =============================================================================
+
+# ML pipeline outputs (regenerable via `make train`)
+backend/app/ml/artifacts/dataset.csv
+backend/app/ml/artifacts/model.joblib
+backend/app/ml/artifacts/metrics.json
+backend/app/ml/artifacts/*.png
+
+# Runtime logs
+*.log
+logs/
+
+# =============================================================================
+# Docker / Containers
+# =============================================================================
+.docker/
+docker-compose.override.yml
+
+# =============================================================================
+# Misc
+# =============================================================================
+*.bak
+*.orig
+*.tmp
+*.tmp.*
+tmp/
+temp/

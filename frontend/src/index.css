@@ -1,0 +1,135 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-canvas-dark text-ink-onDark font-sans antialiased;
+  font-feature-settings: "ss01", "cv11";
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+*:focus-visible {
+  outline: 2px solid theme("colors.brand.DEFAULT");
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@layer components {
+  /* Display — Aeonik Pro / Inter Display, 500 weight, tight tracking. */
+  .text-display-xl {
+    font-family: theme("fontFamily.display");
+    font-size: 64px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.96px;
+  }
+  .text-display-lg {
+    font-family: theme("fontFamily.display");
+    font-size: 40px;
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.4px;
+  }
+  .text-display-md {
+    font-family: theme("fontFamily.display");
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.14px;
+  }
+
+  /* Heading — Inter, 600. */
+  .text-heading-lg {
+    font-family: theme("fontFamily.sans");
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0;
+  }
+  .text-heading-sm {
+    font-family: theme("fontFamily.sans");
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0;
+  }
+
+  /* Body — Inter, with the signature positive tracking. */
+  .text-body {
+    font-family: theme("fontFamily.sans");
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.16px;
+  }
+  .text-body-strong {
+    font-family: theme("fontFamily.sans");
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0.16px;
+  }
+  .text-caption {
+    font-family: theme("fontFamily.sans");
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+  .text-eyebrow {
+    font-family: theme("fontFamily.sans");
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  /* Mono — for IPs, ids, risk numerics, KPI big-numbers. */
+  .text-mono-md {
+    font-family: theme("fontFamily.mono");
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0;
+  }
+  .text-mono-lg {
+    font-family: theme("fontFamily.mono");
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  /* Button label. */
+  .text-button {
+    font-family: theme("fontFamily.sans");
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.16px;
+  }
+}

@@ -1,0 +1,28 @@
+services:
+  backend:
+    build: ./backend
+    container_name: sentinel-backend
+    ports:
+      - "8000:8000"
+    environment:
+      ZTNA_API_HOST: 0.0.0.0
+      ZTNA_CORS_ORIGINS: '["http://localhost:5173","http://localhost"]'
+    volumes:
+      - ./backend/app/ml/artifacts:/srv/app/ml/artifacts:rw
+
+  proxy:
+    build: ./proxy
+    container_name: sentinel-proxy
+    depends_on: [backend]
+    ports:
+      - "9090:9090"
+    environment:
+      ZTNA_PDP_URL: http://backend:8000/api/access
+      ZTNA_LISTEN: 0.0.0.0:9090
+
+  frontend:
+    build: ./frontend
+    container_name: sentinel-frontend
+    depends_on: [backend]
+    ports:
+      - "8080:80"
