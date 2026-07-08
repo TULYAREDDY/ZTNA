@@ -7,6 +7,7 @@ control deducts a fixed weight derived from CIS / NIST 800-53 controls
 
 from __future__ import annotations
 
+from app.core.risk_constants import HIGH_RISK_GEOS
 from app.models.schemas import PostureRequest
 
 WEIGHTS = {
@@ -17,9 +18,6 @@ WEIGHTS = {
     "is_managed_device": 15,
     "os_patched": 25,
 }
-
-HIGH_RISK_GEOS = {"KP", "RU", "IR", "CU", "SY"}
-
 
 def evaluate_posture(p: PostureRequest) -> tuple[int, list[str]]:
     """Return (posture_score 0-100, reasons[])."""

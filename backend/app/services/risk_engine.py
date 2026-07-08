@@ -18,16 +18,31 @@ from typing import Tuple
 
 from app.core.config import get_settings
 from app.models.schemas import AccessFeatures
+from app.services.geo_service import compute_location_risk, resolve_country
 from app.services.session_store import Session
 
 
-def compute_features(session: Session, current_ip: str) -> AccessFeatures:
+def compute_features(
+    session: Session,
+    current_ip: str,
+    *,
+    geo_country: str | None = None,
+) -> AccessFeatures:
     now = time.time()
     recent = [t for t in session.request_history if now - t < 60]
     request_rate = len(recent) / 60.0 if recent else 0.0
     ip_change = 0 if session.ip_address == current_ip else 1
     device_trust = round(session.posture_score / 100.0, 3)
-    location_risk = 0.05 if not ip_change else 0.65
+    current_geo = resolve_country(
+        current_ip,
+        session_geo=session.geo_country,
+        geo_hint=geo_country,
+    )
+    location_risk = compute_location_risk(
+        session.geo_country,
+        current_geo,
+        bool(ip_change),
+    )
     session_age_min = (now - session.created_at) / 60.0
 
     return AccessFeatures(
@@ -42,14 +57,29 @@ def compute_features(session: Session, current_ip: str) -> AccessFeatures:
     )
 
 
-def rule_component(features: AccessFeatures, session: Session) -> Tuple[int, list[str]]:
+def rule_component(
+    features: AccessFeatures,
+    session: Session,
+    *,
+    current_ip: str,
+    geo_country: str | None = None,
+) -> Tuple[int, list[str]]:
     """Deterministic, auditable risk contribution (0–100)."""
     score = 0
     reasons: list[str] = []
+    current_geo = resolve_country(
+        current_ip,
+        session_geo=session.geo_country,
+        geo_hint=geo_country,
+    )
 
     if features.ip_change:
         score += 60
         reasons.append("ip_mismatch_session_hijack_suspected")
+
+    if current_geo != session.geo_country.upper()[:2]:
+        score += 15
+        reasons.append(f"geo_mismatch:{session.geo_country}->{current_geo}")
 
     if features.failed_attempts >= 3:
         score += 25

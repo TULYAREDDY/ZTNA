@@ -33,6 +33,7 @@ Run:
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import platform
 import time
@@ -86,6 +87,7 @@ ARTIFACTS = Path("app/ml/artifacts")
 SEED = 7
 N_SAMPLES = 20_000
 CV_FOLDS = 5
+MAX_MODEL_BYTES = 5 * 1024 * 1024  # keep deployable artifacts committable
 
 BRAND = "#494fdf"
 ALLOW = "#00a87e"
@@ -181,8 +183,8 @@ SEARCH_SPACES = {
         "clf__class_weight": [None, "balanced"],
     },
     "random_forest": {
-        "clf__n_estimators": [200, 400, 600],
-        "clf__max_depth": [None, 6, 10, 16],
+        "clf__n_estimators": [80, 120, 200],
+        "clf__max_depth": [6, 10, 16],
         "clf__min_samples_split": [2, 5, 10],
         "clf__min_samples_leaf": [1, 2, 4],
         "clf__class_weight": [None, "balanced"],
@@ -201,6 +203,25 @@ SEARCH_SPACES = {
 }
 
 
+def _artifact_size_bytes(model: Pipeline) -> int:
+    buf = io.BytesIO()
+    joblib.dump(model, buf)
+    return buf.tell()
+
+
+def _fit_calibrated(
+    winner: str,
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    *,
+    n_iter: int = 20,
+) -> tuple[CalibratedClassifierCV, dict]:
+    tuned, best_params = _tune(winner, X_train, y_train, n_iter=n_iter)
+    calibrated = CalibratedClassifierCV(tuned, method="sigmoid", cv=5)
+    calibrated.fit(X_train, y_train)
+    return calibrated, best_params
+
+
 def _tune(name: str, X: np.ndarray, y: np.ndarray, n_iter: int = 20) -> tuple[Pipeline, dict]:
     pipe = _make_pipeline(CANDIDATES[name])
     cv = StratifiedKFold(n_splits=CV_FOLDS, shuffle=True, random_state=SEED)
@@ -213,6 +234,40 @@ def _tune(name: str, X: np.ndarray, y: np.ndarray, n_iter: int = 20) -> tuple[Pi
     best_params = {k.replace("clf__", ""): v for k, v in search.best_params_.items()}
     print(f"  tuned {name}  best_f1={search.best_score_:.4f}  params={best_params}")
     return search.best_estimator_, best_params
+
+
+def _compact_deploy_model(
+    winner: str,
+    comparison: list[dict],
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+) -> tuple[str, CalibratedClassifierCV, dict]:
+    """Prefer a small on-disk model so artifacts can ship with the repo."""
+    calibrated, best_params = _fit_calibrated(winner, X_train, y_train)
+    size = _artifact_size_bytes(calibrated)
+    if size <= MAX_MODEL_BYTES:
+        print(f"[ml] deploy artifact size={size / 1024:.1f} KiB")
+        return winner, calibrated, best_params
+
+    print(
+        f"[ml] {winner} artifact is {size / (1024 * 1024):.1f} MiB — "
+        "selecting a compact fallback"
+    )
+    for candidate in comparison:
+        name = candidate["name"]
+        if name == winner:
+            continue
+        if name not in {"logistic_regression", "gradient_boosting", "mlp"}:
+            continue
+        fallback, params = _fit_calibrated(name, X_train, y_train, n_iter=12)
+        fb_size = _artifact_size_bytes(fallback)
+        print(f"  candidate {name}: {fb_size / 1024:.1f} KiB")
+        if fb_size <= MAX_MODEL_BYTES:
+            return name, fallback, params
+
+    compact, params = _fit_calibrated("logistic_regression", X_train, y_train, n_iter=8)
+    print(f"  forced logistic_regression: {_artifact_size_bytes(compact) / 1024:.1f} KiB")
+    return "logistic_regression", compact, params
 
 
 # ---------------------------------------------------------------------------
@@ -310,14 +365,11 @@ def main() -> None:
     winner, comparison = _compare_models(X_train, y_train)
     print(f"  winner={winner}")
 
-    # 2. Hyperparameter search on the winner
+    # 2–3. Tune, calibrate, and keep the artifact small enough to ship
     print(f"[ml] tuning {winner}")
-    tuned, best_params = _tune(winner, X_train, y_train, n_iter=20)
-
-    # 3. Probability calibration on a held-out slice
-    print("[ml] calibrating probabilities (sigmoid)")
-    calibrated = CalibratedClassifierCV(tuned, method="sigmoid", cv=5)
-    calibrated.fit(X_train, y_train)
+    winner, calibrated, best_params = _compact_deploy_model(
+        winner, comparison, X_train, y_train,
+    )
 
     # 4. Held-out evaluation
     y_proba = calibrated.predict_proba(X_test)[:, 1]

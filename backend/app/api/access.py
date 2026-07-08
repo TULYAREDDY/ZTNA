@@ -66,9 +66,16 @@ async def access(req: AccessRequest) -> AccessResponse:
             session_status=sess.status,
         )
 
-    features = compute_features(sess, req.ip_address)
-    rule_score, rule_reasons = rule_component(features, sess)
+    features = compute_features(sess, req.ip_address, geo_country=req.geo_country)
+    rule_score, rule_reasons = rule_component(
+        features,
+        sess,
+        current_ip=req.ip_address,
+        geo_country=req.geo_country,
+    )
     ml_prob = ml_service.predict_probability(features)
+    if not ml_service.is_trained():
+        rule_reasons.append("ml_model_inactive")
     final_score, decision = decide(rule_score, ml_prob)
 
     if ml_prob >= 0.7:

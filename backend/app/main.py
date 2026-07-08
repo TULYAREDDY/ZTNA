@@ -31,6 +31,8 @@ async def lifespan(app: FastAPI):
     configure_logging()
     cfg = get_settings()
     logger.info("starting %s on :%d", cfg.app_name, cfg.api_port)
+    if not ml_service.ensure_model():
+        logger.warning("ML model unavailable — access decisions will be rule-only")
     ml_service.metrics()  # warm load
     sweeper_task = asyncio.create_task(_session_sweeper())
     yield
@@ -85,10 +87,16 @@ def create_app() -> FastAPI:
 
     @app.get("/api/health", tags=["health"])
     async def health() -> dict:
+        metrics = ml_service.metrics()
         return {
             "ok": True,
             "service": cfg.app_name,
             "active_sessions": len(store.all_active()),
+            "ml": {
+                "trained": ml_service.is_trained(),
+                "model": metrics.get("model"),
+                "accuracy": metrics.get("accuracy"),
+            },
         }
 
     return app

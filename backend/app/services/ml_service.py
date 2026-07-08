@@ -36,8 +36,37 @@ class MLService:
         self._model: Optional[Any] = None
         self._metrics: dict | None = None
         self._lock = threading.Lock()
+        self._load_attempted = False
+
+    def is_trained(self) -> bool:
+        if self._metrics is None:
+            self._load()
+        if self._metrics is not None:
+            return bool(self._metrics.get("trained"))
+        cfg = get_settings()
+        return cfg.ml_model_path.exists()
+
+    def ensure_model(self) -> bool:
+        """Train the classifier if artifacts are missing."""
+        if self.is_trained():
+            return True
+        cfg = get_settings()
+        if not cfg.ml_auto_train:
+            return False
+        logger.warning("ML model missing — running training pipeline")
+        from app.ml.train import main as train_main
+
+        train_main()
+        self._model = None
+        self._metrics = None
+        self._load_attempted = False
+        self._load()
+        return self.is_trained()
 
     def _load(self) -> None:
+        if self._load_attempted:
+            return
+        self._load_attempted = True
         cfg = get_settings()
         model_path: Path = cfg.ml_model_path
         metrics_path: Path = cfg.ml_metrics_path

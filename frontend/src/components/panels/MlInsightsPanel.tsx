@@ -77,11 +77,14 @@ export function MlInsightsPanel({ data }: Props) {
         <CardTitle>ML Insights</CardTitle>
         <CardSubtitle>Run training to populate this panel</CardSubtitle>
         <div className="mt-4 rounded-input bg-canvas-dark p-4 text-body text-ink-onDarkMute">
-          The model has not been trained yet. From the project root:
+          The classifier is not loaded yet. The backend auto-trains on
+          startup, or you can run manually from the project root:
           <pre className="mt-2 rounded-input bg-surface-deep p-3 text-mono-md text-ink-onDarkMute">
-{`cd backend
-python -m app.ml.train`}
+{`make train
+# or
+cd backend && python -m app.ml.train`}
           </pre>
+          Until training completes, access decisions use the rule engine only.
         </div>
       </Card>
     );

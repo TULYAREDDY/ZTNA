@@ -37,6 +37,10 @@ class PostureResponse(BaseModel):
 class AccessRequest(BaseModel):
     session_id: str
     ip_address: str
+    geo_country: str | None = Field(
+        default=None,
+        description="Optional ISO-3166 alpha-2 country for the client IP.",
+    )
     target_service: str = ""
     method: str = "GET"
     path: str = "/"

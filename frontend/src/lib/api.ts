@@ -107,6 +107,17 @@ export interface ModelMetadata {
   cv_folds: number;
 }
 
+export interface HealthStatus {
+  ok: boolean;
+  service: string;
+  active_sessions: number;
+  ml: {
+    trained: boolean;
+    model?: string;
+    accuracy?: number;
+  };
+}
+
 export interface Scenario {
   key: string;
   label: string;
@@ -130,7 +141,7 @@ async function postJSON<T>(path: string, body?: unknown): Promise<T> {
 }
 
 export const api = {
-  health: () => getJSON<{ ok: boolean; service: string; active_sessions: number }>("/health"),
+  health: () => getJSON<HealthStatus>("/health"),
   snapshot: () => getJSON<Snapshot>("/analytics/snapshot"),
   mlMetrics: () => getJSON<MlMetrics>("/analytics/ml"),
   recentEvents: (limit = 100) => getJSON<EventView[]>(`/analytics/events?limit=${limit}`),

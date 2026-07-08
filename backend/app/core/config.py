@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     ml_model_path: Path = Path("app/ml/artifacts/model.joblib")
     ml_metrics_path: Path = Path("app/ml/artifacts/metrics.json")
     ml_dataset_path: Path = Path("app/ml/artifacts/dataset.csv")
+    ml_auto_train: bool = True
 
     # CORS
     cors_origins: list[str] = [

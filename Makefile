@@ -1,6 +1,7 @@
-.PHONY: help install backend proxy frontend train demo clean
+.PHONY: help install backend proxy frontend train demo clean ensure-model
 
 PYTHON ?= python3
+MODEL := backend/app/ml/artifacts/model.joblib
 
 help:
 	@echo "Sentinel ZTNA — common targets"
@@ -17,10 +18,13 @@ install:
 	cd proxy    && $(PYTHON) -m venv .venv && .venv/bin/pip install -r requirements.txt
 	cd frontend && npm install
 
+ensure-model:
+	@test -f $(MODEL) || $(MAKE) train
+
 train:
 	cd backend && .venv/bin/python -m app.ml.train
 
-backend:
+backend: ensure-model
 	cd backend && .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 proxy:
@@ -29,7 +33,7 @@ proxy:
 frontend:
 	cd frontend && npm run dev
 
-demo:
+demo: ensure-model
 	@echo "▶ starting backend + frontend… (Ctrl+C to stop both)"
 	@(cd backend && .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload &) ; \
 	 (cd frontend && npm run dev)

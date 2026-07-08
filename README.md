@@ -145,9 +145,12 @@ Three independent processes:
 
 ```bash
 make install       # creates venvs and installs deps
-make train         # generates the dataset + trains the model + exports plots
-make demo          # runs backend on :8000 and frontend on :5173
+make demo          # ensures the ML model exists, then runs backend + frontend
 ```
+
+`make train` regenerates the dataset and retrains the classifier. On
+first boot the backend auto-trains if artifacts are missing; Docker
+images also train during the build step.
 
 In another terminal, optionally:
 
