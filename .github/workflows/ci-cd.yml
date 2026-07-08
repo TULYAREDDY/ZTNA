@@ -46,13 +46,25 @@ jobs:
 
   deploy-render:
     needs: ci
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Render backend deploy
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND != '' }}
-        run: curl -fsSL -X POST "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}"
+        env:
+          RENDER_DEPLOY_HOOK_BACKEND: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_BACKEND" ]; then
+            echo "RENDER_DEPLOY_HOOK_BACKEND not set — skipping backend deploy"
+            exit 0
+          fi
+          curl -fsSL -X POST "$RENDER_DEPLOY_HOOK_BACKEND"
 
       - name: Trigger Render frontend deploy
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND != '' }}
-        run: curl -fsSL -X POST "${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}"
+        env:
+          RENDER_DEPLOY_HOOK_FRONTEND: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_FRONTEND" ]; then
+            echo "RENDER_DEPLOY_HOOK_FRONTEND not set — skipping frontend deploy"
+            exit 0
+          fi
+          curl -fsSL -X POST "$RENDER_DEPLOY_HOOK_FRONTEND"
