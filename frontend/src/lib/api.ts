@@ -1,4 +1,13 @@
 const BASE = "/api";
+const API_TOKEN =
+  (window.localStorage.getItem("ztna_api_token") || undefined) ??
+  (new URLSearchParams(window.location.search).get("token") || undefined) ??
+  (import.meta.env.VITE_API_TOKEN as string | undefined);
+
+function authHeaders(): HeadersInit {
+  if (!API_TOKEN) return {};
+  return { Authorization: `Bearer ${API_TOKEN}` };
+}
 
 export type Decision = "ALLOW" | "MONITOR" | "BLOCK";
 
@@ -125,7 +134,7 @@ export interface Scenario {
 }
 
 async function getJSON<T>(path: string): Promise<T> {
-  const r = await fetch(`${BASE}${path}`);
+  const r = await fetch(`${BASE}${path}`, { headers: authHeaders() });
   if (!r.ok) throw new Error(`${path}: ${r.status}`);
   return r.json();
 }
@@ -133,7 +142,7 @@ async function getJSON<T>(path: string): Promise<T> {
 async function postJSON<T>(path: string, body?: unknown): Promise<T> {
   const r = await fetch(`${BASE}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!r.ok) throw new Error(`${path}: ${r.status}`);
@@ -155,5 +164,6 @@ export const api = {
 
 export function eventsWebSocketUrl(): string {
   const proto = window.location.protocol === "https:" ? "wss" : "ws";
-  return `${proto}://${window.location.host}/api/ws/events`;
+  const qs = API_TOKEN ? `?token=${encodeURIComponent(API_TOKEN)}` : "";
+  return `${proto}://${window.location.host}/api/ws/events${qs}`;
 }

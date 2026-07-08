@@ -315,6 +315,7 @@ Labels are derived from the persona, not the features.
 | POST | `/api/lab/run/{key}` | Fire a scenario |
 | WS | `/api/ws/events` | Real-time event stream |
 | GET | `/api/health` | Healthcheck |
+| GET | `/api/metrics` | Prometheus metrics |
 
 OpenAPI documentation is available at
 [http://localhost:8000/docs](http://localhost:8000/docs) when the
@@ -333,10 +334,61 @@ relevant ones:
 | `ZTNA_SESSION_TTL_SECONDS` | `1800` | Idle session timeout |
 | `ZTNA_SESSION_HARD_TTL_SECONDS` | `28800` | Absolute session lifetime |
 | `ZTNA_MAX_FAILED_ATTEMPTS` | `5` | Lockout threshold |
+| `ZTNA_SESSION_STORE_BACKEND` | `memory` | Session backend (`memory` or `redis`) |
+| `ZTNA_REDIS_URL` | `redis://localhost:6379/0` | Redis connection string |
 | `ZTNA_RISK_MONITOR_THRESHOLD` | `45` | MONITOR floor |
 | `ZTNA_RISK_BLOCK_THRESHOLD` | `70` | BLOCK floor |
+| `ZTNA_AUTH_ENABLED` | `false` | Enable bearer-token auth on API routes |
+| `ZTNA_AUTH_TOKEN` | _(empty)_ | Shared API token when auth is enabled |
+| `ZTNA_METRICS_ENABLED` | `true` | Expose and collect HTTP Prometheus metrics |
+| `ZTNA_RATE_LIMIT_ENABLED` | `true` | Enable per-IP rate limits |
+| `ZTNA_RATE_LIMIT_POSTURE_PER_MIN` | `30` | `/api/posture` requests per minute per IP |
+| `ZTNA_RATE_LIMIT_ACCESS_PER_MIN` | `180` | `/api/access` requests per minute per IP |
 | `ZTNA_PDP_URL` | `http://localhost:8000/api/access` | PEP target |
 | `ZTNA_LISTEN` | `0.0.0.0:9090` | PEP bind address |
+
+## Deploy on Render
+
+This repository includes a Render Blueprint at `render.yaml` that
+deploys two Docker web services:
+
+- `sentinel-backend` (FastAPI on `/api/*`)
+- `sentinel-frontend` (Nginx serving React + reverse proxy to backend)
+- `sentinel-redis` (managed Redis for persistent session state)
+
+### Steps
+
+1. Push this repository to GitHub.
+2. In Render, click **New +** → **Blueprint**.
+3. Select this repository and deploy using `render.yaml`.
+4. After the first deploy, confirm these env vars:
+   - `BACKEND_UPSTREAM` (frontend) points to your backend URL.
+   - `ZTNA_CORS_ORIGINS` (backend) includes your frontend URL.
+
+### Recommended production settings on Render
+
+- Keep `ZTNA_ML_AUTO_TRAIN=false` in backend env to avoid cold-start
+  training in production.
+- Let the backend Docker build pre-train the model (`python -m app.ml.train`).
+- Use `ZTNA_SESSION_STORE_BACKEND=redis` with `ZTNA_REDIS_URL` from the
+  `sentinel-redis` service.
+- Optional auth hardening:
+  - Set `ZTNA_AUTH_ENABLED=true`
+  - Set a strong `ZTNA_AUTH_TOKEN`
+  - Open frontend with `?token=<same-token>` once, or set browser
+    localStorage key `ztna_api_token` to the same token
+- Metrics endpoint is available at `/api/metrics` for Prometheus scraping.
+
+## CI/CD
+
+GitHub Actions workflow: `.github/workflows/ci-cd.yml`
+
+- Runs backend compile checks
+- Builds frontend
+- Builds backend/frontend Docker images
+- On `main`, triggers Render deploy hooks if secrets are configured:
+  - `RENDER_DEPLOY_HOOK_BACKEND`
+  - `RENDER_DEPLOY_HOOK_FRONTEND`
 
 ## Roadmap
 

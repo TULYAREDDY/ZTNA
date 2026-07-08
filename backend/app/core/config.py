@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     session_ttl_seconds: int = 1800              # 30 min idle
     session_hard_ttl_seconds: int = 28800        # 8 h hard cap
     max_failed_attempts: int = 5
+    session_store_backend: str = "memory"        # memory | redis
+    redis_url: str = "redis://localhost:6379/0"
+    redis_key_prefix: str = "ztna"
 
     # Risk thresholds: continuous, monitor, block
     risk_monitor_threshold: int = 45
@@ -29,6 +32,16 @@ class Settings(BaseSettings):
     ml_metrics_path: Path = Path("app/ml/artifacts/metrics.json")
     ml_dataset_path: Path = Path("app/ml/artifacts/dataset.csv")
     ml_auto_train: bool = True
+
+    # API security
+    auth_enabled: bool = False
+    auth_token: str = ""
+
+    # Observability / traffic controls
+    metrics_enabled: bool = True
+    rate_limit_enabled: bool = True
+    rate_limit_posture_per_min: int = 30
+    rate_limit_access_per_min: int = 180
 
     # CORS
     cors_origins: list[str] = [

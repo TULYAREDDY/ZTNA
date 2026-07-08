@@ -1,0 +1,57 @@
+services:
+  - type: redis
+    name: sentinel-redis
+    plan: free
+    ipAllowList: []
+
+  - type: web
+    name: sentinel-backend
+    env: docker
+    plan: free
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: ZTNA_APP_NAME
+        value: Sentinel ZTNA (Render)
+      - key: ZTNA_API_HOST
+        value: 0.0.0.0
+      - key: ZTNA_SESSION_TTL_SECONDS
+        value: 1800
+      - key: ZTNA_SESSION_HARD_TTL_SECONDS
+        value: 28800
+      - key: ZTNA_MAX_FAILED_ATTEMPTS
+        value: 5
+      - key: ZTNA_SESSION_STORE_BACKEND
+        value: redis
+      - key: ZTNA_REDIS_URL
+        fromService:
+          type: redis
+          name: sentinel-redis
+          property: connectionString
+      - key: ZTNA_RISK_MONITOR_THRESHOLD
+        value: 45
+      - key: ZTNA_RISK_BLOCK_THRESHOLD
+        value: 70
+      - key: ZTNA_ML_AUTO_TRAIN
+        value: "false"
+      - key: ZTNA_AUTH_ENABLED
+        value: "false"
+      - key: ZTNA_METRICS_ENABLED
+        value: "true"
+      - key: ZTNA_RATE_LIMIT_ENABLED
+        value: "true"
+      # Set this to your frontend service URL after first deploy.
+      - key: ZTNA_CORS_ORIGINS
+        value: '["https://sentinel-frontend.onrender.com"]'
+
+  - type: web
+    name: sentinel-frontend
+    env: docker
+    plan: free
+    dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
+    envVars:
+      # Replace with your actual backend Render URL if name differs.
+      - key: BACKEND_UPSTREAM
+        value: https://sentinel-backend.onrender.com
