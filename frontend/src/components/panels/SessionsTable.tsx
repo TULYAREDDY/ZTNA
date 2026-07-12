@@ -25,6 +25,7 @@ const COLUMN_HEADERS = [
 ];
 
 const POLL_INTERVAL_MS = 2500;
+const MAX_BACKOFF_MULTIPLIER = 8;
 
 export function SessionsTable() {
   const [rows, setRows] = useState<SessionView[]>([]);
@@ -32,19 +33,27 @@ export function SessionsTable() {
 
   useEffect(() => {
     let cancelled = false;
+    let timeoutId: number;
+    let backoff = 1;
     const load = async () => {
       try {
         const data = await api.sessions(false);
-        if (!cancelled) setRows(data);
+        if (cancelled) return;
+        setRows(data);
+        backoff = 1;
       } catch {
-        /* ignore — next poll will retry */
+        /* ignore — next poll will retry, with backoff */
+        backoff = Math.min(backoff * 2, MAX_BACKOFF_MULTIPLIER);
+      } finally {
+        if (!cancelled) {
+          timeoutId = window.setTimeout(load, POLL_INTERVAL_MS * backoff);
+        }
       }
     };
     load();
-    const id = setInterval(load, POLL_INTERVAL_MS);
     return () => {
       cancelled = true;
-      clearInterval(id);
+      window.clearTimeout(timeoutId);
     };
   }, []);
 
