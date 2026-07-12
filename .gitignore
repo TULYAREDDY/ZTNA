@@ -124,10 +124,10 @@ frontend/.tsbuild-node/
 # Sentinel ZTNA — application artifacts
 # =============================================================================
 
-# ML pipeline outputs (regenerable via `make train`)
+# ML pipeline outputs — model.joblib/metrics.json are committed on purpose
+# so Docker builds don't have to retrain (heavy: 5-fold CV + search + MLP)
+# on the deploy host. Regenerate both via `make train` after model changes.
 backend/app/ml/artifacts/dataset.csv
-backend/app/ml/artifacts/model.joblib
-backend/app/ml/artifacts/metrics.json
 backend/app/ml/artifacts/*.png
 
 # Runtime logs

@@ -12,7 +12,6 @@ RUN pip install -r requirements.txt
 COPY app ./app
 COPY start-backend.sh ./start-backend.sh
 RUN chmod +x ./start-backend.sh
-RUN python -m app.ml.train
 
 EXPOSE 8000
 CMD ["./start-backend.sh"]
